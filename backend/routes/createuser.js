@@ -1,82 +1,89 @@
 const express = require("express");
-const router = express.Router();
-const User = require("../model/users");
+const { body, validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-require("dotenv").config();
-
-router.post("/createUser", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
+const router = express.Router();
+const User = require("../models/User");
+const jwtSecret = "ThisisagoFoodyWebsiteWhichOrders";
+// Signup route to enter user Data in Database
+router.post(
+  "/createuser",
+  [
+    body("email", "Enter a valid mail id").isEmail(),
+    body(
+      "password",
+      "Password length should be at least 5 characters"
+    ).isLength({ min: 5 }),
+    body("name").isLength({ min: 5 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    let secPassword = await bcrypt.hash(req.body.password, salt);
 
-    await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    // Display success message and navigate to login page
-    res.status(200).json({
-      success: true,
-      message: "Registration successful",
-      // Provide the login page route
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "User registration failed",
-    });
-  }
-});
-
-router.post(
-  "/loginUser",
-
-  async (req, res) => {
     try {
-      const { email, password } = req.body;
-      const user = await User.findOne({ email });
+      await User.create({
+        name: req.body.name,
+        password: secPassword,
+        email: req.body.email,
+        location: req.body.location,
+      });
+      res.json({ success: true });
+    } catch (err) {
+      console.log(err);
+      res.json({ success: false });
+    }
+  }
+);
 
-      if (!user) {
-        return res.status(400).json({
-          error: "Invalid email",
-          message: "Please enter a valid email",
-          success: false,
-        });
+// Login route to check for data inside database
+router.post(
+  "/loginuser",
+  [
+    body("email").isEmail(),
+    body("password", "Incorrect Password").isLength({ min: 5 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    let email = req.body.email;
+    try {
+      let userData = await User.findOne({ email });
+      if (!userData) {
+        return res
+          .status(400)
+          .json({ errors: "Try logging with correct credentials" });
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const pwdCompare = await bcrypt.compare(
+        req.body.password,
+        userData.password
+      );
 
-      if (!isPasswordValid) {
-        return res.status(400).json({
-          error: "Invalid password",
-          message: "Please enter the correct password",
-          success: false,
-        });
+      if (!pwdCompare) {
+        return res
+          .status(400)
+          .json({ errors: "Try logging with correct credentials" });
       }
 
-      const payload = {
+      const data = {
         user: {
-          id: user.id,
+          id: userData.id,
         },
       };
 
-      const token = jwt.sign(payload, process.env.jwtsec, { expiresIn: "1h" });
+      const authToken = jwt.sign(data, jwtSecret);
 
-      return res.json({ success: true, token });
-    } catch (error) {
-      console.error(error);
+      return res.json({ success: true, authToken: authToken });
+    } catch (err) {
+      console.log(err);
       res.json({ success: false });
     }
   }

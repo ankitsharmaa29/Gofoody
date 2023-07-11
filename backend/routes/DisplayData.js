@@ -1,15 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const food = require("../model/fooditem");
-const category = require("../model/foodcategory");
-router.post("/foodData", async (req, res) => {
-  try {
-    global.fooditem = await food.find({});
-    global.catFood = await category.find({});
 
-    res.send([global.fooditem, global.catFood]);
-  } catch (error) {
-    res.status(400).json({ message: "error occured while fatching data" });
+router.post("/foodData", (req, res) => {
+  try {
+    res.send([global.food_items, global.food_category]);
+  } catch (err) {
+    console.error(err.message);
+    res.send("Server Error");
   }
 });
+
 module.exports = router;
