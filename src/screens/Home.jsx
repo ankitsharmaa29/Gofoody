@@ -72,19 +72,21 @@ function Home() {
 
                                     <hr />
 
-                                    {(foodItems !== []) ? foodItems.filter((itemData) => (itemData.CategoryName === data.CategoryName) && (itemData.name.toLowerCase().includes(search.toLowerCase())
-                                    )).map((filteredItems) => {
-                                        return (
-                                            <div key={filteredItems._id} className='col-12 col-md-6 col-lg-3'>
-                                                <Card
-                                                    foodName={filteredItems.name}
-                                                    options={filteredItems.options[0]}
-                                                    imgSrc={filteredItems.img}
-                                                    description={filteredItems.description}
-                                                />
-                                            </div>
-                                        )
-                                    }) : null}
+                                    {(foodItems !== []) ?
+                                        foodItems.filter((itemData) =>
+                                            (itemData.CategoryName === data.CategoryName) &&
+                                            (itemData.name.toLowerCase().includes(search.toLowerCase()))
+                                        ).map((filteredItems) => {
+                                            return (
+                                                <div key={filteredItems._id} className='col-12 col-md-6 col-lg-3'>
+                                                    <Card
+                                                        finalPrice={filteredItems.options[1]}
+                                                        foodItem={filteredItems}
+                                                        options={filteredItems.options[0]}
+                                                    />
+                                                </div>
+                                            )
+                                        }) : null}
                                 </div>
                             )
                         }) : null
