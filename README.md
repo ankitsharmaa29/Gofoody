@@ -1,5 +1,5 @@
 Dynamic and Responsive Food Ordering Website
-– GitHub Link :- https://github.com/RG20215105/FoodOrderingWebsite
+
 – Tools & technologies used:: ReactJS CSS Bootstrap NodeJS Express MongoDB
 – Designed Login/Signup Feature using BcryptJS for password encryption
 – Created a real time search-bar fetching data from Database
